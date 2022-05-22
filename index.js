@@ -21,6 +21,7 @@ async function run () {
         //connection to database and collection
         await client.connect();
         const partsCollection = client.db('computerParts').collection('parts');
+        const reviewsCollection = client.db('computerParts').collection('reviews');
 
         //get api
 
@@ -30,7 +31,13 @@ async function run () {
             const collections = await cursor.toArray();
             res.send(collections);
         });
-        console.log("database-connected");
+
+        app.get('/reviewslist', async (req, res) => {
+            const query = {};
+            const cursor = reviewsCollection.find(query);
+            const collections = await cursor.toArray();
+            res.send(collections);
+        });
 
     }
 
