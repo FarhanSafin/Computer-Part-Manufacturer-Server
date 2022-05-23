@@ -39,6 +39,14 @@ async function run () {
             res.send(collections);
         });
 
+
+        app.get('/part/:id', async(req, res) => {
+            const id = req.params.id;
+            const query = {_id: ObjectId(id)};
+            const collection = await partsCollection.findOne(query);
+            res.send(collection);
+        });
+
     }
 
     finally{
