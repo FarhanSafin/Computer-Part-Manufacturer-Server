@@ -22,6 +22,7 @@ async function run () {
         await client.connect();
         const partsCollection = client.db('computerParts').collection('parts');
         const reviewsCollection = client.db('computerParts').collection('reviews');
+        const orderCollection = client.db('computerParts').collection('orders');
 
         //get api
 
@@ -46,6 +47,15 @@ async function run () {
             const collection = await partsCollection.findOne(query);
             res.send(collection);
         });
+
+
+                //post api
+
+                app.post('/addorder' ,async(req, res) => {
+                    const newOrder = req.body;
+                    const result = await orderCollection.insertOne(newOrder);
+                    res.send(result);
+                })
 
     }
 
