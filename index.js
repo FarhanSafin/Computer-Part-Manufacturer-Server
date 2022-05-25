@@ -55,6 +55,16 @@ async function run () {
             res.send(collections);
         });
 
+
+        app.get('/allorders', async (req, res) => {
+            const query = {};
+            const cursor = orderCollection.find(query);
+            const collections = await cursor.toArray();
+            res.send(collections);
+        });
+
+
+
         app.get('/reviewslist', async (req, res) => {
             const query = {};
             const cursor = reviewsCollection.find(query);
@@ -99,10 +109,18 @@ async function run () {
                 })
 
                 //delete
-                app.delete('/part/:id', async(req, res) => {
+                app.delete('/order/:id', async(req, res) => {
                     const id = req.params.id;
                     const query = {_id: ObjectId(id)};
                     const result = await orderCollection.deleteOne(query);
+                    res.send(result);
+                })
+
+
+                app.delete('/part/:id', async(req, res) => {
+                    const id = req.params.id;
+                    const query = {_id: ObjectId(id)};
+                    const result = await partsCollection.deleteOne(query);
                     res.send(result);
                 })
 
