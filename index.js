@@ -177,6 +177,14 @@ async function run () {
                     res.send(result)
                 })
 
+
+
+                app.post('/addreview' ,async(req, res) => {
+                    const review = req.body;
+                    const result = await reviewsCollection.insertOne(review);
+                    res.send(result);
+                })
+
     }
 
     finally{
