@@ -203,6 +203,13 @@ async function run () {
                     res.send(result);
                 })
 
+
+                app.post('/addpart' ,async(req, res) => {
+                    const part = req.body;
+                    const result = await partsCollection.insertOne(part);
+                    res.send(result);
+                })
+
     }
 
     finally{
