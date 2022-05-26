@@ -17,8 +17,6 @@ const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
 
-
-
 function verifyJWT(req, res, next){
     const authHeader = req.headers.authorization;
     if(!authHeader){
@@ -57,67 +55,12 @@ async function run () {
             res.send(collections);
         });
 
-
-
         app.get('/order/:id', verifyJWT, async(req, res) => {
             const id = req.params.id;
             const query = {_id: ObjectId(id)}
             const order = await orderCollection.findOne(query);
             res.send(order)
         })
-
-
-
-
-
-
-
-
-
-
-    
-        app.post('/createpaymentintent', verifyJWT, async(req, res) => {
-            let {price} = req.body;
-            const amount = price * 100;
-            const paymentIntent = await stripe.paymentIntents.create({
-                amount: amount,
-                currency: 'usd',
-                payment_method_types:['card']
-            });
-            res.send({
-                clientSecret: paymentIntent.client_secret,
-              })
-        })
-
-
-
-
-
-
-        app.patch('/order/:id', verifyJWT, async(req, res) => {
-            const id = req.params.id;
-            const payment = req.body;
-            const filter = {_id: ObjectId(id)};
-            const updateDoc = {
-                $set: {
-                    paid: 'Pending',
-                    transactionId: payment.transactionId
-                }
-            };
-
-            const result = await paymentsCollection.insertOne(payment);
-            const updatedOrder = await orderCollection.updateOne(filter, updateDoc);
-            
-            res.send(updateDoc)
-        })
-
-
-
-
-
-
-
-
 
         app.get('/allorders', async (req, res) => {
             const query = {};
@@ -126,8 +69,6 @@ async function run () {
             res.send(collections);
         });
 
-
-
         app.get('/reviewslist', async (req, res) => {
             const query = {};
             const cursor = reviewsCollection.find(query);
@@ -135,14 +76,12 @@ async function run () {
             res.send(collections);
         });
 
-
         app.get('/part/:id', async(req, res) => {
             const id = req.params.id;
             const query = {_id: ObjectId(id)};
             const collection = await partsCollection.findOne(query);
             res.send(collection);
         });
-
 
         app.get('/myOrders',verifyJWT, async(req, res) => {
             const email = req.query.email;
@@ -162,12 +101,52 @@ async function run () {
             res.send(users);
         })
 
+        app.get('/admin/:email', async(req, res) => {
+            const email = req.params.email;
+            const user = await userCollection.findOne({email: email});
+            const isAdmin = user.role === 'admin';
+            res.send({admin: isAdmin})
+        })
+
+        
+
+        app.get('/user/profile/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const collection = await userCollection.findOne({email: email});
+            res.send(collection);
+        });
 
                 //post api
 
                 app.post('/addorder' ,async(req, res) => {
                     const newOrder = req.body;
                     const result = await orderCollection.insertOne(newOrder);
+                    res.send(result);
+                })
+
+                app.post('/createpaymentintent', verifyJWT, async(req, res) => {
+                    let {price} = req.body;
+                    const amount = price * 100;
+                    const paymentIntent = await stripe.paymentIntents.create({
+                        amount: amount,
+                        currency: 'usd',
+                        payment_method_types:['card']
+                    });
+                    res.send({
+                        clientSecret: paymentIntent.client_secret,
+                      })
+                })
+
+                app.post('/addreview' ,async(req, res) => {
+                    const review = req.body;
+                    const result = await reviewsCollection.insertOne(review);
+                    res.send(result);
+                })
+
+
+                app.post('/addpart' ,async(req, res) => {
+                    const part = req.body;
+                    const result = await partsCollection.insertOne(part);
                     res.send(result);
                 })
 
@@ -179,8 +158,6 @@ async function run () {
                     res.send(result);
                 })
 
-
-
                 app.delete('/customerorder/:id', async(req, res) => {
                     const id = req.params.id;
                     const query = {_id: ObjectId(id)};
@@ -188,36 +165,15 @@ async function run () {
                     res.send(result);
                 })
 
-
-
-
-
-
-
-                app.get('/admin/:email', async(req, res) => {
-                    const email = req.params.email;
-                    const user = await userCollection.findOne({email: email});
-                    const isAdmin = user.role === 'admin';
-                    res.send({admin: isAdmin})
+                app.delete('/part/:id', async(req, res) => {
+                    const id = req.params.id;
+                    const query = {_id: ObjectId(id)};
+                    const result = await partsCollection.deleteOne(query);
+                    res.send(result);
                 })
 
-                
-
-                app.get('/user/profile/:email', verifyJWT, async (req, res) => {
-                    const email = req.params.email;
-                    const collection = await userCollection.findOne({email: email});
-                    res.send(collection);
-                });
-
-
-
-
-
-
-
-
-
                 //put api
+
                 app.put('/user/admin/:email', verifyJWT, async(req, res) => {
                     const email = req.params.email;
                     const requester = req.decoded.email;
@@ -232,19 +188,7 @@ async function run () {
                     }else{
                         res.status(403).send({message: 'Forbidden'})
                     }
-
                 })
-
-
-
-
-                                app.delete('/part/:id', async(req, res) => {
-                    const id = req.params.id;
-                    const query = {_id: ObjectId(id)};
-                    const result = await partsCollection.deleteOne(query);
-                    res.send(result);
-                })
-
 
                 app.put('/updatestatus/:id', verifyJWT, async(req, res) => {
                     const id = req.params.id;
@@ -255,9 +199,6 @@ async function run () {
                         const result = await orderCollection.updateOne(filter, updateDoc);
                         res.send({result})
                     })
-
-
-
 
                 app.put('/adduserinfo/:email', async(req, res) => {
                     const email = req.params.email;
@@ -270,12 +211,6 @@ async function run () {
                     const result = await userCollection.updateOne(filter, updateDoc, options);
                     res.send(result)
                 })
-
-
-
-
-
-
 
                 app.put('/user/:email', async(req, res) => {
                     const email = req.params.email;
@@ -292,18 +227,33 @@ async function run () {
 
 
 
-                app.post('/addreview' ,async(req, res) => {
-                    const review = req.body;
-                    const result = await reviewsCollection.insertOne(review);
-                    res.send(result);
-                })
 
 
-                app.post('/addpart' ,async(req, res) => {
-                    const part = req.body;
-                    const result = await partsCollection.insertOne(part);
-                    res.send(result);
+
+
+
+
+
+
+
+                //patch api 
+                app.patch('/order/:id', verifyJWT, async(req, res) => {
+                    const id = req.params.id;
+                    const payment = req.body;
+                    const filter = {_id: ObjectId(id)};
+                    const updateDoc = {
+                        $set: {
+                            paid: 'Pending',
+                            transactionId: payment.transactionId
+                        }
+                    };
+        
+                    const result = await paymentsCollection.insertOne(payment);
+                    const updatedOrder = await orderCollection.updateOne(filter, updateDoc);
+                    
+                    res.send(updateDoc)
                 })
+
 
     }
 
