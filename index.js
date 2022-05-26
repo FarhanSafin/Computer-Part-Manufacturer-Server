@@ -46,6 +46,7 @@ async function run () {
         const reviewsCollection = client.db('computerParts').collection('reviews');
         const orderCollection = client.db('computerParts').collection('orders');
         const userCollection = client.db('computerParts').collection('users');
+        const paymentsCollection = client.db('computerParts').collection('payments');
 
         //get api
 
@@ -91,6 +92,24 @@ async function run () {
 
 
 
+
+
+        app.patch('/order/:id', verifyJWT, async(req, res) => {
+            const id = req.params.id;
+            const payment = req.body;
+            const filter = {_id: ObjectId(id)};
+            const updateDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            };
+
+            const result = await paymentsCollection.insertOne(payment);
+            const updatedOrder = await orderCollection.updateOne(filter, updateDoc);
+            
+            res.send(updateDoc)
+        })
 
 
 
