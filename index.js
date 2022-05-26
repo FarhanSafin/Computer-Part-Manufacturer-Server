@@ -100,7 +100,7 @@ async function run () {
             const filter = {_id: ObjectId(id)};
             const updateDoc = {
                 $set: {
-                    paid: true,
+                    paid: 'Pending',
                     transactionId: payment.transactionId
                 }
             };
